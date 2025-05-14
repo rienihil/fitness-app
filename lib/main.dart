@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:my_app/screens/workout_select_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/workout_screen.dart';
@@ -118,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final screens = [
     DashboardScreen(),
-    WorkoutSelectScreen(),
+    WorkoutScreen(),
     NutritionScreen(),
     ProfileScreen(),
   ];

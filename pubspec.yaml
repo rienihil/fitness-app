@@ -20,6 +20,7 @@ dependencies:
   pedometer: ^4.0.0
   permission_handler: ^11.3.0
   connectivity_plus: ^6.1.4
+  table_calendar: ^3.2.0
 
 dev_dependencies:
   flutter_test:

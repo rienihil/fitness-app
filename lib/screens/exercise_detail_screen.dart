@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../data/exercise_data.dart';
+import '../widgets/workout_calendar.dart';
 
 class ExerciseDetailScreen extends StatefulWidget {
   final Exercise exercise;
@@ -51,6 +52,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         });
       } else {
         timer.cancel();
+        WorkoutCalendar.markTodayWorkoutDone();
         setState(() {
           _isRunning = false;
         });

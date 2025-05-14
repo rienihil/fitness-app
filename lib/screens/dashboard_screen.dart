@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/water_tracker.dart';
 import '../widgets/progress_section.dart';
 import '../widgets/step_counter_widget.dart';
+import '../widgets/workout_calendar.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -27,7 +28,7 @@ class DashboardScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 24),
-            ProgressSection(),
+            WorkoutCalendar(),
             SizedBox(height: 24),
             WaterTracker(),
           ],
