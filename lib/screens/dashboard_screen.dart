@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../widgets/water_tracker.dart';
-import '../widgets/progress_section.dart';
 import '../widgets/step_counter_widget.dart';
 import '../widgets/workout_calendar.dart';
 
