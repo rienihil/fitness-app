@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -124,12 +126,22 @@ class _NutritionScreenState extends State<NutritionScreen> with SingleTickerProv
   }
 
   void _addMeal(Map<String, dynamic> meal) {
-    setState(() {
-      _selectedMeals.add({...meal, 'id': DateTime.now().millisecondsSinceEpoch.toString()});
-      _updateTotalNutrition();
-    });
-    _saveData();
-    _showSnackBar("${meal['name']} added");
+    void _addMeal(Map<String, dynamic> meal) {
+      final newMeal = {
+        ...meal,
+        'id': DateTime.now().millisecondsSinceEpoch.toString(),
+        'isSynced': false, // NEW
+      };
+
+      setState(() {
+        _selectedMeals.add(newMeal);
+        _updateTotalNutrition();
+      });
+
+      _saveData();
+      _showSnackBar("${meal['name']} added");
+    }
+
   }
 
   void _removeMeal(int index, {BuildContext? modalContext}) {
@@ -711,4 +723,27 @@ class _NutritionScreenState extends State<NutritionScreen> with SingleTickerProv
     _tabController.dispose();
     super.dispose();
   }
+  Future<void> _syncMealsToFirebase() async {
+    final unsyncedMeals = _selectedMeals.where((meal) => meal['isSynced'] != true).toList();
+    final userId = FirebaseAuth.instance.currentUser?.uid;
+
+    for (final meal in unsyncedMeals) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('meals')
+            .doc(meal['id'])
+            .set(meal);
+
+        // Mark as synced
+        meal['isSynced'] = true;
+      } catch (e) {
+        debugPrint('Error syncing meal ${meal['name']}: $e');
+      }
+    }
+
+    await _saveData();
+  }
+
 }

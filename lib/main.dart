@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:my_app/screens/workout_select_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/workout_screen.dart';
 import 'screens/nutrition_screen.dart';
 import 'screens/profile_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'screens/login_screen.dart'; // Import the login screen
+import 'screens/login_screen.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   final prefs = await SharedPreferences.getInstance();
   final isDarkMode = prefs.getBool('isDarkMode') ?? false;
-
-  // Check if user is logged in
   final isLoggedIn = prefs.containsKey('uid');
 
   runApp(MyFitnessApp(
@@ -93,7 +93,8 @@ class MyApp extends InheritedWidget {
     required Widget child,
   }) : super(key: key, child: child);
 
-  static MyApp? of(BuildContext context) => context.dependOnInheritedWidgetOfExactType<MyApp>();
+  static MyApp? of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<MyApp>();
 
   @override
   bool updateShouldNotify(covariant MyApp oldWidget) => true;
@@ -110,13 +111,14 @@ class _HomeScreenState extends State<HomeScreen> {
   int index = 0;
   String? name;
   String? email;
+  bool isOffline = false;
 
   final nameController = TextEditingController();
   final emailController = TextEditingController();
 
   final screens = [
     DashboardScreen(),
-    WorkoutScreen(),
+    WorkoutSelectScreen(),
     NutritionScreen(),
     ProfileScreen(),
   ];
@@ -125,6 +127,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     loadUserData();
+    initConnectivityListener();
   }
 
   Future<void> loadUserData() async {
@@ -142,6 +145,20 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       name = nameController.text;
       email = emailController.text;
+    });
+  }
+
+  void initConnectivityListener() {
+    Connectivity().onConnectivityChanged.listen((result) {
+      setState(() {
+        isOffline = result == ConnectivityResult.none;
+      });
+    });
+
+    Connectivity().checkConnectivity().then((result) {
+      setState(() {
+        isOffline = result == ConnectivityResult.none;
+      });
     });
   }
 
@@ -179,20 +196,49 @@ class _HomeScreenState extends State<HomeScreen> {
       return buildUserForm();
     }
 
-    return Scaffold(
-      body: screens[index],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: index,
-        onTap: (value) => setState(() => index = value),
-        selectedItemColor: Colors.deepPurple,
-        unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Main"),
-          BottomNavigationBarItem(icon: Icon(Icons.fitness_center), label: "Exercises"),
-          BottomNavigationBarItem(icon: Icon(Icons.fastfood), label: "Nutrition"),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Profile"),
-        ],
-      ),
+    return Stack(
+      children: [
+        Scaffold(
+          body: screens[index],
+          bottomNavigationBar: BottomNavigationBar(
+            currentIndex: index,
+            onTap: (value) => setState(() => index = value),
+            selectedItemColor: Colors.deepPurple,
+            unselectedItemColor: Colors.grey,
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: "Main"),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.fitness_center), label: "Exercises"),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.fastfood), label: "Nutrition"),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.person), label: "Profile"),
+            ],
+          ),
+        ),
+        if (isOffline)
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              color: Colors.redAccent,
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.wifi_off, color: Colors.white, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Нет подключения к интернету',
+                    style: TextStyle(color: Colors.white, fontSize: 14),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+      ],
     );
   }
 }

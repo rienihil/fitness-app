@@ -23,7 +23,6 @@ class WorkoutScreen extends StatelessWidget {
         appBar: AppBar(title: Text('Workout Exercises')),
         body: Column(
           children: [
-            // Filters
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: Row(children: [
