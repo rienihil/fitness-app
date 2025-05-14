@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../data/yoga_data.dart';
@@ -15,6 +16,8 @@ class YogaDetailScreen extends StatefulWidget {
 
 class _YogaDetailScreenState extends State<YogaDetailScreen> {
   late VideoPlayerController _videoController;
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
   Timer? _timer;
   int _remainingTime = 0;
   bool _isRunning = false;
@@ -43,32 +46,37 @@ class _YogaDetailScreenState extends State<YogaDetailScreen> {
     });
 
     _timer?.cancel();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
       if (_remainingTime > 0) {
         setState(() {
           _remainingTime--;
         });
+        await _audioPlayer.play(AssetSource('sounds/tick.mp3'));
       } else {
         timer.cancel();
         setState(() {
           _isRunning = false;
         });
+        await _audioPlayer.play(AssetSource('sounds/beep.mp3'));
       }
     });
   }
 
   void stopTimer() {
     _timer?.cancel();
+    _audioPlayer.stop();
     setState(() {
       _isRunning = false;
     });
   }
+
 
   @override
   void dispose() {
     _timer?.cancel();
     _videoController.dispose();
     _durationController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
 

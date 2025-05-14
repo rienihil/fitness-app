@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 import '../data/exercise_data.dart';
 
@@ -16,6 +17,8 @@ class ExerciseDetailScreen extends StatefulWidget {
 
 class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   late VideoPlayerController _videoController;
+  final AudioPlayer _audioPlayer = AudioPlayer();
+
   Timer? _timer;
   int _remainingTime = 0;
   bool _isRunning = false;
@@ -44,32 +47,37 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     });
 
     _timer?.cancel();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(Duration(seconds: 1), (timer) async {
       if (_remainingTime > 0) {
         setState(() {
           _remainingTime--;
         });
+        await _audioPlayer.play(AssetSource('sounds/tick.mp3'));
       } else {
         timer.cancel();
         setState(() {
           _isRunning = false;
         });
+        await _audioPlayer.play(AssetSource('sounds/beep.mp3'));
       }
     });
   }
 
   void stopTimer() {
     _timer?.cancel();
+    _audioPlayer.stop();
     setState(() {
       _isRunning = false;
     });
   }
+
 
   @override
   void dispose() {
     _timer?.cancel();
     _videoController.dispose();
     _durationController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
