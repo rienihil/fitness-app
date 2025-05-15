@@ -29,7 +29,7 @@ class _YogaDetailScreenState extends State<YogaDetailScreen> {
     _remainingTime = widget.initialDurationInSeconds;
     _durationController.text = _remainingTime.toString();
 
-    _videoController = VideoPlayerController.asset(widget.pose.videoAsset)
+    _videoController = VideoPlayerController.asset(widget.pose.videoAsset, videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true))
       ..initialize().then((_) {
         _videoController.setVolume(0);
         _videoController.setLooping(true);
@@ -51,7 +51,7 @@ class _YogaDetailScreenState extends State<YogaDetailScreen> {
         setState(() {
           _remainingTime--;
         });
-        await _audioPlayer.play(AssetSource('sounds/tick.mp3'));
+        await _audioPlayer.play(AssetSource('sounds/yoga_sound.mp3'));
       } else {
         timer.cancel();
         setState(() {

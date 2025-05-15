@@ -30,7 +30,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     _remainingTime = widget.initialDurationInSeconds;
     _durationController.text = _remainingTime.toString();
 
-    _videoController = VideoPlayerController.asset(widget.exercise.videoAsset)
+    _videoController = VideoPlayerController.asset(widget.exercise.videoAsset, videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true))
       ..initialize().then((_) {
         _videoController.setVolume(0);
         _videoController.setLooping(true);

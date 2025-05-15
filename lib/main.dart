@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:my_app/screens/workout_select_screen.dart';
+import 'package:my_app/service/pin_auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/dashboard_screen.dart';
-import 'screens/workout_screen.dart';
 import 'screens/nutrition_screen.dart';
 import 'screens/profile_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'screens/login_screen.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:my_app/screens/pin_lock_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -59,6 +60,12 @@ class _MyFitnessAppState extends State<MyFitnessApp> {
     });
   }
 
+  void _navigateToHome(BuildContext context) {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MyApp(
@@ -76,7 +83,18 @@ class _MyFitnessAppState extends State<MyFitnessApp> {
           primarySwatch: Colors.deepPurple,
         ),
         debugShowCheckedModeBanner: false,
-        home: _isLoggedIn ? HomeScreen() : LoginScreen(),
+        home: _isLoggedIn ? FutureBuilder<bool>(
+          future: PinAuthService().isPinSetup(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState != ConnectionState.done) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.data == true) {
+              return PinLockScreen(onSuccess: () => _navigateToHome(context));
+            }
+            return HomeScreen();
+          },
+        ) : LoginScreen(),
       ),
     );
   }
