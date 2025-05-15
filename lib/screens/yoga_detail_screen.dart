@@ -1,22 +1,20 @@
 import 'dart:async';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
-import 'package:audioplayers/audioplayers.dart';
+import '../data/yoga_data.dart';
 
-import '../data/exercise_data.dart';
-import '../widgets/workout_calendar.dart';
-
-class ExerciseDetailScreen extends StatefulWidget {
-  final Exercise exercise;
+class YogaDetailScreen extends StatefulWidget {
+  final YogaPose pose;
   final int initialDurationInSeconds = 30;
 
-  const ExerciseDetailScreen({required this.exercise});
+  const YogaDetailScreen({required this.pose});
 
   @override
-  _ExerciseDetailScreenState createState() => _ExerciseDetailScreenState();
+  _YogaDetailScreenState createState() => _YogaDetailScreenState();
 }
 
-class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
+class _YogaDetailScreenState extends State<YogaDetailScreen> {
   late VideoPlayerController _videoController;
   final AudioPlayer _audioPlayer = AudioPlayer();
 
@@ -31,7 +29,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
     _remainingTime = widget.initialDurationInSeconds;
     _durationController.text = _remainingTime.toString();
 
-    _videoController = VideoPlayerController.asset(widget.exercise.videoAsset, videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true))
+    _videoController = VideoPlayerController.asset(widget.pose.videoAsset, videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true))
       ..initialize().then((_) {
         _videoController.setVolume(0);
         _videoController.setLooping(true);
@@ -53,10 +51,9 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         setState(() {
           _remainingTime--;
         });
-        await _audioPlayer.play(AssetSource('sounds/tick.mp3'));
+        await _audioPlayer.play(AssetSource('sounds/yoga_sound.mp3'));
       } else {
         timer.cancel();
-        WorkoutCalendar.markTodayWorkoutDone();
         setState(() {
           _isRunning = false;
         });
@@ -86,7 +83,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(widget.exercise.name)),
+      appBar: AppBar(title: Text(widget.pose.name)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -100,7 +97,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
                 : CircularProgressIndicator(),
 
             SizedBox(height: 20),
-            Text(widget.exercise.description, style: TextStyle(fontSize: 16)),
+            Text(widget.pose.description, style: TextStyle(fontSize: 16)),
             SizedBox(height: 20),
 
             // Duration Input

@@ -723,27 +723,5 @@ class _NutritionScreenState extends State<NutritionScreen> with SingleTickerProv
     _tabController.dispose();
     super.dispose();
   }
-  Future<void> _syncMealsToFirebase() async {
-    final unsyncedMeals = _selectedMeals.where((meal) => meal['isSynced'] != true).toList();
-    final userId = FirebaseAuth.instance.currentUser?.uid;
-
-    for (final meal in unsyncedMeals) {
-      try {
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userId)
-            .collection('meals')
-            .doc(meal['id'])
-            .set(meal);
-
-        // Mark as synced
-        meal['isSynced'] = true;
-      } catch (e) {
-        debugPrint('Error syncing meal ${meal['name']}: $e');
-      }
-    }
-
-    await _saveData();
-  }
 
 }
