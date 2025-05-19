@@ -1,15 +1,30 @@
 import 'package:flutter/material.dart';
 import '../widgets/water_tracker.dart';
-import '../widgets/progress_section.dart';
 import '../widgets/step_counter_widget.dart';
+import '../widgets/workout_calendar.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
+  void _handleReload(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Reconnecting.")),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Dashboard")),
+      appBar: AppBar(
+        title: Text("Dashboard"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            tooltip: 'Reconnect',
+            onPressed: () => _handleReload(context),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
@@ -27,7 +42,7 @@ class DashboardScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 24),
-            ProgressSection(),
+            WorkoutCalendar(),
             SizedBox(height: 24),
             WaterTracker(),
           ],

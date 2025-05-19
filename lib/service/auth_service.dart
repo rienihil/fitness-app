@@ -256,6 +256,54 @@ class AuthService {
       rethrow;
     }
   }
+  // Метод для удаления аккаунта пользователя
+  Future<void> deleteAccount(String password) async {
+    try {
+      // Проверяем подключение к интернету
+      if (!await isOnline) {
+        throw FirebaseAuthException(
+          code: 'network-error',
+          message: 'No internet connection. Account deletion requires internet.',
+        );
+      }
+
+      // Проверяем, что пользователь авторизован
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw FirebaseAuthException(
+          code: 'no-user',
+          message: 'No authenticated user found.',
+        );
+      }
+
+      // Для повторной аутентификации перед удалением аккаунта
+      if (user.email != null && password.isNotEmpty) {
+        // Создаем учетные данные для повторной аутентификации
+        final credential = EmailAuthProvider.credential(
+          email: user.email!,
+          password: password,
+        );
+
+        // Повторно аутентифицируем пользователя
+        await user.reauthenticateWithCredential(credential);
+      }
+
+      // Удаляем учетную запись пользователя в Firebase
+      await user.delete();
+
+      // Очищаем локальные данные
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.clear(); // Очищаем все хранилище предпочтений
+
+      // Также очищаем PIN и любые другие данные аутентификации
+      await _pinAuth.resetPin();
+
+      debugPrint('Account successfully deleted');
+    } catch (e) {
+      debugPrint('Account deletion error: $e');
+      rethrow;
+    }
+  }
 
   // Force sync pending data
   Future<bool> syncPendingData() {
@@ -264,4 +312,103 @@ class AuthService {
 
   // Get pending sync count
   int get pendingSyncCount => _offlineService.pendingSyncCount;
+
+  // НОВЫЕ МЕТОДЫ ДЛЯ ОБНОВЛЕНИЯ ПРОФИЛЯ
+
+  // Обновление имени пользователя
+  Future<void> updateUserName(String newName) async {
+    try {
+      // Проверяем подключение к интернету
+      if (!await isOnline) {
+        throw FirebaseAuthException(
+          code: 'network-error',
+          message: 'No internet connection. Profile update requires internet.',
+        );
+      }
+
+      // Проверяем, что пользователь авторизован
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw FirebaseAuthException(
+          code: 'no-user',
+          message: 'No authenticated user found.',
+        );
+      }
+
+      // Обновляем имя в Firebase
+      await user.updateDisplayName(newName);
+
+      // Обновляем имя в локальном хранилище
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('name', newName);
+
+    } catch (e) {
+      debugPrint('Update name error: $e');
+      rethrow;
+    }
+  }
+
+  // Повторная аутентификация пользователя (требуется для некоторых операций)
+  Future<void> reauthenticateUser(String email, String password) async {
+    try {
+      // Проверяем подключение к интернету
+      if (!await isOnline) {
+        throw FirebaseAuthException(
+          code: 'network-error',
+          message: 'No internet connection. Reauthentication requires internet.',
+        );
+      }
+
+      // Проверяем, что пользователь авторизован
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw FirebaseAuthException(
+          code: 'no-user',
+          message: 'No authenticated user found.',
+        );
+      }
+
+      // Создаем учетные данные для повторной аутентификации
+      final credential = EmailAuthProvider.credential(
+        email: email,
+        password: password,
+      );
+
+      // Повторно аутентифицируем пользователя
+      await user.reauthenticateWithCredential(credential);
+
+    } catch (e) {
+      debugPrint('Reauthentication error: $e');
+      rethrow;
+    }
+  }
+
+  // Обновление пароля пользователя
+  Future<void> updateUserPassword(String newPassword) async {
+    try {
+      // Проверяем подключение к интернету
+      if (!await isOnline) {
+        throw FirebaseAuthException(
+          code: 'network-error',
+          message: 'No internet connection. Password update requires internet.',
+        );
+      }
+
+      // Проверяем, что пользователь авторизован
+      final user = _auth.currentUser;
+      if (user == null) {
+        throw FirebaseAuthException(
+          code: 'no-user',
+          message: 'No authenticated user found.',
+        );
+      }
+
+      // Обновляем пароль в Firebase
+      await user.updatePassword(newPassword);
+
+    } catch (e) {
+      debugPrint('Update password error: $e');
+      rethrow;
+    }
+  }
 }

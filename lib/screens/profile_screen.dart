@@ -5,6 +5,8 @@ import '../service/auth_service.dart';
 import '../service/pin_auth_service.dart';
 import 'login_screen.dart';
 import 'pin_setup_screen.dart';
+import 'edit_account_screen.dart';
+import 'delete_account_screen.dart';// Добавляем импорт экрана редактирования аккаунта
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -120,16 +122,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  // Изменяем метод для открытия экрана редактирования аккаунта
   void _showAccountDetails() {
     if (isGuest) return _showGuestRestriction();
-    _showDialog(
-      'Account Details',
-      Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [Text('Name: $name'), Text('Email: $email')],
+
+    // Вместо диалога открываем экран редактирования
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditAccountScreen(
+          currentName: name,
+          currentEmail: email,
+        ),
       ),
-    );
+    ).then((updatedName) {
+      // Если получили обновленное имя, обновляем состояние
+      if (updatedName != null && updatedName is String) {
+        setState(() {
+          name = updatedName;
+        });
+      }
+      // Перезагружаем данные пользователя для обновления интерфейса
+      _loadUserData();
+    });
   }
 
   void _showLanguageDialog() {
@@ -146,22 +161,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _showDeleteConfirmation() {
     if (isGuest) return _showGuestRestriction();
-    _showDialog(
-      'Delete Account',
-      const Text('Are you sure you want to delete your account? This action cannot be undone.'),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
-        ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-          onPressed: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Account deletion is not yet implemented')),
-            );
-            Navigator.pop(context);
-          },
-          child: const Text('Delete'),
-        ),
-      ],
+
+    // Вместо диалога перенаправляем на экран удаления аккаунта
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const DeleteAccountScreen(),
+      ),
     );
   }
 
@@ -232,7 +238,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       child: Row(
         children: [
-          CircleAvatar(radius: 28, child: Text(isGuest ? 'G' : 'A')),
+          CircleAvatar(radius: 28, child: Text(isGuest ? 'G' : name.isNotEmpty ? name[0].toUpperCase() : 'A')),
           const SizedBox(width: 16),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
