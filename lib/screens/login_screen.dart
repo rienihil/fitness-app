@@ -5,6 +5,7 @@ import '../service/auth_service.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
 import 'dashboard_screen.dart';
+import 'pin_login_screen.dart'; // Import PIN login screen
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -139,6 +140,14 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  // Navigate to PIN login screen
+  void _navigateToPinLogin() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const PinLoginScreen()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -257,21 +266,31 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
 
-                // Forgot password
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
-                      );
-                    },
-                    child: Text(
-                      'Forgot Password?',
-                      style: TextStyle(color: theme.colorScheme.primary),
+                // Row with forgot password and PIN login options
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // PIN Login option
+                    TextButton.icon(
+                      onPressed: _navigateToPinLogin,
+                      icon: const Icon(Icons.dialpad),
+                      label: const Text('PIN Login'),
                     ),
-                  ),
+
+                    // Forgot password
+                    TextButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ForgotPasswordScreen()),
+                        );
+                      },
+                      child: Text(
+                        'Forgot Password?',
+                        style: TextStyle(color: theme.colorScheme.primary),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 24),
 

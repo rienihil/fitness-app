@@ -6,10 +6,25 @@ import '../widgets/workout_calendar.dart';
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
+  void _handleReload(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Reconnecting.")),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Dashboard")),
+      appBar: AppBar(
+        title: Text("Dashboard"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            tooltip: 'Reconnect',
+            onPressed: () => _handleReload(context),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(16),
         child: Column(
