@@ -306,7 +306,6 @@ class _NutritionScreenState extends State<NutritionScreen> with SingleTickerProv
       ),
     );
   }
-
   Widget _buildNutritionSummary() {
     final theme = Theme.of(context);
     final percent = _totalCalories / _goalCalories;
