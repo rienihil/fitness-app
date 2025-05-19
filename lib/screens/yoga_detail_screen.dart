@@ -3,6 +3,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import '../data/yoga_data.dart';
+import '../widgets/workout_calendar.dart';
 
 class YogaDetailScreen extends StatefulWidget {
   final YogaPose pose;
@@ -54,6 +55,7 @@ class _YogaDetailScreenState extends State<YogaDetailScreen> {
         await _audioPlayer.play(AssetSource('sounds/yoga_sound.mp3'));
       } else {
         timer.cancel();
+        WorkoutCalendar.markTodayWorkoutDone(widget.pose.name);
         setState(() {
           _isRunning = false;
         });

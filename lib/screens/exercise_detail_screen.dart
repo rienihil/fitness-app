@@ -4,6 +4,7 @@ import 'package:video_player/video_player.dart';
 import 'package:audioplayers/audioplayers.dart';
 
 import '../data/exercise_data.dart';
+import '../widgets/workout_calendar.dart';
 
 class ExerciseDetailScreen extends StatefulWidget {
   final Exercise exercise;
@@ -55,6 +56,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         await _audioPlayer.play(AssetSource('sounds/tick.mp3'));
       } else {
         timer.cancel();
+        WorkoutCalendar.markTodayWorkoutDone(widget.exercise.name);
         setState(() {
           _isRunning = false;
         });

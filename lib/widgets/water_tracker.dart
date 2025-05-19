@@ -70,13 +70,13 @@ class _WaterTrackerState extends State<WaterTracker> {
 
             Row(
               children: [
-                Text("Порция: "),
+                Text("Portion: "),
                 DropdownButton<int>(
                   value: _selectedPortion,
                   items: _portionOptions.map((value) {
                     return DropdownMenuItem<int>(
                       value: value,
-                      child: Text("$value мл"),
+                      child: Text("$value ml"),
                     );
                   }).toList(),
                   onChanged: (value) {
@@ -92,7 +92,7 @@ class _WaterTrackerState extends State<WaterTracker> {
             ElevatedButton.icon(
               onPressed: _addWater,
               icon: Icon(Icons.local_drink),
-              label: Text("Добавить $_selectedPortion мл"),
+              label: Text("Add $_selectedPortion ml"),
             ),
           ],
         ),

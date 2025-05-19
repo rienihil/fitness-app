@@ -3,6 +3,7 @@ import 'package:my_app/screens/workout_select_screen.dart';
 import 'package:my_app/service/pin_auth_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'screens/dashboard_screen.dart';
+import 'screens/workout_screen.dart';
 import 'screens/nutrition_screen.dart';
 import 'screens/profile_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
