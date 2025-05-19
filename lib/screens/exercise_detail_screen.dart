@@ -56,7 +56,7 @@ class _ExerciseDetailScreenState extends State<ExerciseDetailScreen> {
         await _audioPlayer.play(AssetSource('sounds/tick.mp3'));
       } else {
         timer.cancel();
-        WorkoutCalendar.markTodayWorkoutDone();
+        WorkoutCalendar.markTodayWorkoutDone(widget.exercise.name);
         setState(() {
           _isRunning = false;
         });
