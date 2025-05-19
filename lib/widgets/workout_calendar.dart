@@ -9,29 +9,38 @@ class WorkoutCalendar extends StatefulWidget {
   @override
   State<WorkoutCalendar> createState() => _WorkoutCalendarState();
 
+  /// Добавляет выполненную тренировку в список тренировок текущего дня
   static Future<void> markTodayWorkoutDone(String workoutName) async {
     final prefs = await SharedPreferences.getInstance();
     final today = DateTime.now().toIso8601String().substring(0, 10);
 
-    final jsonString = prefs.getString('workoutDays') ?? '{}';
-    final Map<String, dynamic> rawMap = json.decode(jsonString);
-    final Map<String, List<String>> days = rawMap.map(
-          (key, value) => MapEntry(key, List<String>.from(value)),
-    );
+    final jsonString = prefs.getString('dailyLogs') ?? '{}';
+    final Map<String, dynamic> logs = json.decode(jsonString);
 
-    final todayList = days[today] ?? [];
-    if (!todayList.contains(workoutName)) {
-      todayList.add(workoutName);
-      days[today] = todayList;
+    final dayData = logs[today] ?? {
+      "steps": 0,
+      "waterMl": 0,
+      "workouts": [],
+      "calories": 0,
+      "protein": 0,
+      "carbs": 0,
+      "fat": 0,
+      "synced": false,
+    };
+
+    final workouts = List<String>.from(dayData["workouts"] ?? []);
+    if (!workouts.contains(workoutName)) {
+      workouts.add(workoutName);
+      dayData["workouts"] = workouts;
     }
 
-    await prefs.setString('workoutDays', json.encode(days));
+    logs[today] = dayData;
+    await prefs.setString('dailyLogs', json.encode(logs));
   }
 }
 
-
 class _WorkoutCalendarState extends State<WorkoutCalendar> {
-  Map<String, List<String>> _completedWorkouts = {};
+  Map<String, dynamic> _dailyLogs = {};
   DateTime? _selectedDay;
 
   @override
@@ -42,18 +51,17 @@ class _WorkoutCalendarState extends State<WorkoutCalendar> {
 
   Future<void> _loadWorkoutData() async {
     final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString('workoutDays') ?? '{}';
-    final Map<String, dynamic> rawMap = json.decode(jsonString);
+    final jsonString = prefs.getString('dailyLogs') ?? '{}';
+    final Map<String, dynamic> logs = json.decode(jsonString);
     setState(() {
-      _completedWorkouts = rawMap.map(
-            (key, value) => MapEntry(key, List<String>.from(value)),
-      );
+      _dailyLogs = logs;
     });
   }
 
   Color _getDayColor(DateTime day) {
     final key = _formatDate(day);
-    final hasWorkouts = (_completedWorkouts[key]?.isNotEmpty ?? false);
+    final workouts = _dailyLogs[key]?['workouts'];
+    final hasWorkouts = (workouts != null && workouts is List && workouts.isNotEmpty);
     return hasWorkouts ? Colors.green : Colors.grey.shade300;
   }
 
@@ -63,26 +71,39 @@ class _WorkoutCalendarState extends State<WorkoutCalendar> {
     setState(() {
       _selectedDay = selectedDay;
     });
-    _showWorkoutDetails(selectedDay);
+    _showDayDetails(selectedDay);
   }
 
-  void _showWorkoutDetails(DateTime day) {
+  void _showDayDetails(DateTime day) {
     final key = _formatDate(day);
-    final workouts = _completedWorkouts[key] ?? [];
+    final data = _dailyLogs[key];
 
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text("Тренировки $key"),
-        content: workouts.isEmpty
-            ? Text("Нет выполненных тренировок.")
+        title: Text("Данные за $key"),
+        content: data == null
+            ? const Text("Нет данных.")
             : Column(
           mainAxisSize: MainAxisSize.min,
-          children: workouts.map((w) => Text("- $w")).toList(),
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Шаги: ${data['steps'] ?? 0}"),
+            Text("Вода: ${data['waterMl'] ?? 0} мл"),
+            Text("Калории: ${data['calories'] ?? 0}"),
+            Text("Белки: ${data['protein'] ?? 0} г"),
+            Text("Углеводы: ${data['carbs'] ?? 0} г"),
+            Text("Жиры: ${data['fat'] ?? 0} г"),
+            const SizedBox(height: 8),
+            Text("Тренировки:"),
+            if ((data['workouts'] as List).isEmpty)
+              const Text(" - нет"),
+            ...List<String>.from(data['workouts'] ?? []).map((w) => Text(" - $w")),
+          ],
         ),
         actions: [
           TextButton(
-            child: Text("ОК"),
+            child: const Text("ОК"),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -101,19 +122,19 @@ class _WorkoutCalendarState extends State<WorkoutCalendar> {
           children: [
             Row(
               children: [
-                Text(
-                  "Training calendar",
+                const Text(
+                  "Training Calendar",
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
-                Spacer(),
+                const Spacer(),
                 IconButton(
-                  icon: Icon(Icons.refresh),
-                  tooltip: "Refresh",
+                  icon: const Icon(Icons.refresh),
+                  tooltip: "Обновить",
                   onPressed: _loadWorkoutData,
                 )
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             TableCalendar(
               firstDay: DateTime.utc(2025, 1, 1),
               lastDay: DateTime.utc(2025, 12, 31),
@@ -130,7 +151,7 @@ class _WorkoutCalendarState extends State<WorkoutCalendar> {
                     ),
                     child: Text(
                       '${day.day}',
-                      style: TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white),
                     ),
                   );
                 },
