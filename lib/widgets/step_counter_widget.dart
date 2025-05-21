@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import '../widgets/animated_goal_card.dart';
 import 'package:pedometer/pedometer.dart';
@@ -13,9 +15,7 @@ class StepCounterWidget extends StatefulWidget {
 
 class _StepCounterWidgetState extends State<StepCounterWidget> {
   late Stream<StepCount> _stepCountStream;
-  int _stepsRaw = 0;
   int _stepsToday = 0;
-  int _startOfDaySteps = 0;
   double _calories = 0.0;
 
   @override
@@ -49,9 +49,8 @@ class _StepCounterWidgetState extends State<StepCounterWidget> {
     final stepsToday = event.steps - startSteps;
 
     setState(() {
-      _stepsRaw = event.steps;
-      _startOfDaySteps = startSteps;
       _stepsToday = stepsToday.clamp(0, 999999);
+      saveStepsToLogs(_stepsToday);
       _calories = _stepsToday * 0.04;
     });
   }
@@ -61,6 +60,17 @@ class _StepCounterWidgetState extends State<StepCounterWidget> {
       _stepsToday = 0;
       _calories = 0;
     });
+  }
+
+  Future<void> saveStepsToLogs(int steps) async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final logs = json.decode(prefs.getString('dailyLogs') ?? '{}');
+
+    logs[today] = logs[today] ?? {};
+    logs[today]['steps'] = steps;
+
+    await prefs.setString('dailyLogs', json.encode(logs));
   }
 
   @override

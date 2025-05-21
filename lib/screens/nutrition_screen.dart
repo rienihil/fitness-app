@@ -123,25 +123,42 @@ class _NutritionScreenState extends State<NutritionScreen> with SingleTickerProv
       _totalCarbs += meal['carbs'] as int;
       _totalFat += meal['fat'] as int;
     }
+    saveNutritionToLogs(calories: _totalCalories, protein: _totalProtein, carbs: _totalCarbs, fat: _totalFat);
+  }
+
+  Future<void> saveNutritionToLogs({
+    required int calories,
+    required int protein,
+    required int carbs,
+    required int fat,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final logs = json.decode(prefs.getString('dailyLogs') ?? '{}');
+
+    logs[today] = logs[today] ?? {};
+    logs[today]['calories'] = calories;
+    logs[today]['protein'] = protein;
+    logs[today]['carbs'] = carbs;
+    logs[today]['fat'] = fat;
+
+    await prefs.setString('dailyLogs', json.encode(logs));
   }
 
   void _addMeal(Map<String, dynamic> meal) {
-    void _addMeal(Map<String, dynamic> meal) {
-      final newMeal = {
-        ...meal,
-        'id': DateTime.now().millisecondsSinceEpoch.toString(),
-        'isSynced': false, // NEW
-      };
+    final newMeal = {
+      ...meal,
+      'id': DateTime.now().millisecondsSinceEpoch.toString(),
+      'isSynced': false, // NEW
+    };
 
-      setState(() {
-        _selectedMeals.add(newMeal);
-        _updateTotalNutrition();
-      });
+    setState(() {
+      _selectedMeals.add(newMeal);
+      _updateTotalNutrition();
+    });
 
-      _saveData();
-      _showSnackBar("${meal['name']} added");
-    }
-
+    _saveData();
+    _showSnackBar("${meal['name']} added");
   }
 
   void _removeMeal(int index, {BuildContext? modalContext}) {

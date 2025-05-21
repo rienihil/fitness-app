@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -37,10 +39,22 @@ class _WaterTrackerState extends State<WaterTracker> {
     setState(() {});
   }
 
+  Future<void> _saveWaterToLogs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final today = DateTime.now().toIso8601String().substring(0, 10);
+    final logs = json.decode(prefs.getString('dailyLogs') ?? '{}');
+
+    logs[today] = logs[today] ?? {};
+    logs[today]['waterMl'] = _waterIntake;
+
+    await prefs.setString('dailyLogs', json.encode(logs));
+  }
+
   Future<void> _addWater() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _waterIntake += _selectedPortion;
+      _saveWaterToLogs();
       prefs.setInt('waterIntake', _waterIntake);
 
       final today = DateTime.now().toIso8601String().substring(0, 10);

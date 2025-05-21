@@ -9,7 +9,6 @@ class WorkoutCalendar extends StatefulWidget {
   @override
   State<WorkoutCalendar> createState() => _WorkoutCalendarState();
 
-  /// Добавляет выполненную тренировку в список тренировок текущего дня
   static Future<void> markTodayWorkoutDone(String workoutName) async {
     final prefs = await SharedPreferences.getInstance();
     final today = DateTime.now().toIso8601String().substring(0, 10);
@@ -58,14 +57,26 @@ class _WorkoutCalendarState extends State<WorkoutCalendar> {
     });
   }
 
+  String _formatDate(DateTime date) => date.toIso8601String().substring(0, 10);
+
   Color _getDayColor(DateTime day) {
     final key = _formatDate(day);
-    final workouts = _dailyLogs[key]?['workouts'];
-    final hasWorkouts = (workouts != null && workouts is List && workouts.isNotEmpty);
-    return hasWorkouts ? Colors.green : Colors.grey.shade300;
-  }
+    final data = _dailyLogs[key];
+    if (data == null) return Colors.grey.shade200;
 
-  String _formatDate(DateTime date) => date.toIso8601String().substring(0, 10);
+    final hasWorkouts = (data['workouts'] as List?)?.isNotEmpty ?? false;
+    final steps = data['steps'] ?? 0;
+    final water = data['waterMl'] ?? 0;
+
+    if (hasWorkouts && steps > 3000 && water > 1000) {
+      return Colors.green;
+    } else if (hasWorkouts) {
+      return Colors.orange;
+    } else if (steps > 0 || water > 0) {
+      return Colors.blueGrey;
+    }
+    return Colors.grey.shade200;
+  }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
     setState(() {
@@ -81,24 +92,33 @@ class _WorkoutCalendarState extends State<WorkoutCalendar> {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text("Данные за $key"),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        backgroundColor: Colors.white,
+        title: Text(
+          "Данные за $key",
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
         content: data == null
             ? const Text("Нет данных.")
             : Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Шаги: ${data['steps'] ?? 0}"),
-            Text("Вода: ${data['waterMl'] ?? 0} мл"),
-            Text("Калории: ${data['calories'] ?? 0}"),
-            Text("Белки: ${data['protein'] ?? 0} г"),
-            Text("Углеводы: ${data['carbs'] ?? 0} г"),
-            Text("Жиры: ${data['fat'] ?? 0} г"),
-            const SizedBox(height: 8),
-            Text("Тренировки:"),
+            _buildStat("🚶 Шаги", "${data['steps'] ?? 0}"),
+            _buildStat("💧 Вода", "${data['waterMl'] ?? 0} мл"),
+            _buildStat("🔥 Калории", "${data['calories'] ?? 0}"),
+            _buildStat("🥚 Белки", "${data['protein'] ?? 0} г"),
+            _buildStat("🍞 Углеводы", "${data['carbs'] ?? 0} г"),
+            _buildStat("🥑 Жиры", "${data['fat'] ?? 0} г"),
+            const SizedBox(height: 12),
+            const Text("🏋️ Тренировки:",
+                style: TextStyle(fontWeight: FontWeight.w600)),
             if ((data['workouts'] as List).isEmpty)
-              const Text(" - нет"),
-            ...List<String>.from(data['workouts'] ?? []).map((w) => Text(" - $w")),
+              const Text("– нет"),
+            ...List<String>.from(data['workouts'] ?? [])
+                .map((w) => Text("– $w")),
           ],
         ),
         actions: [
@@ -106,6 +126,18 @@ class _WorkoutCalendarState extends State<WorkoutCalendar> {
             child: const Text("ОК"),
             onPressed: () => Navigator.of(context).pop(),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStat(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        children: [
+          Expanded(child: Text(label)),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -131,9 +163,16 @@ class _WorkoutCalendarState extends State<WorkoutCalendar> {
                   icon: const Icon(Icons.refresh),
                   tooltip: "Обновить",
                   onPressed: _loadWorkoutData,
-                )
+                ),
               ],
             ),
+            if (_selectedDay != null) ...[
+              const SizedBox(height: 8),
+              Text(
+                "Выбранная дата: ${_formatDate(_selectedDay!)}",
+                style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+              ),
+            ],
             const SizedBox(height: 12),
             TableCalendar(
               firstDay: DateTime.utc(2025, 1, 1),
